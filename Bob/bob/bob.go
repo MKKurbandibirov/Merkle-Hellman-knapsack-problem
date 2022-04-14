@@ -33,16 +33,49 @@ func (Bob *T_Bob) KeyGen(keyLen int) {
 	}
 }
 
-func IsPrime(num *big.Int) bool {
-	var sq, mod *big.Int = new(big.Int), new(big.Int)
-	sq.Sqrt(num)
-	var i int64
-	if mod.Mod(num, big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
+func modexp(a, t, n *big.Int) *big.Int {
+	if t.Cmp(big.NewInt(0)) == 0 {
+		return big.NewInt(1)
+	}
+	z := modexp(a, new(big.Int).Quo(t, big.NewInt(2)), n)
+	if new(big.Int).Mod(t, big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
+		return new(big.Int).Mod(new(big.Int).Mul(z, z), n)
+	} else {
+		return new(big.Int).Mod(new(big.Int).Mul(new(big.Int).Mul(z, z), a), n)
+	}
+}
+
+func MillerRabinTest(num *big.Int, k int) bool {
+	if num.Cmp(big.NewInt(2)) == 0 || num.Cmp(big.NewInt(3)) == 0 {
+		return true
+	}
+	if num.Cmp(big.NewInt(2)) == -1 || new(big.Int).Mod(num, big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
 		return false
 	}
-	for i = 3; sq.Cmp(big.NewInt(i)) >= 0; i += 2 {
-		mod.Mod(num, big.NewInt(i)) 
-		if mod.Cmp(big.NewInt(int64(0))) == 0 {
+	var t *big.Int = new(big.Int).Sub(num, big.NewInt(1))
+	var s int = 0
+	for new(big.Int).Mod(t, big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
+		t.Quo(t, big.NewInt(2))
+		s++
+	}
+	var rnd *big.Int = new(big.Int)
+	for i := 0; i < k; i++ {
+		rnd.Rand(rand.New(rand.NewSource(time.Now().UnixNano())), new(big.Int).Sub(num, big.NewInt(4)))
+		rnd.Add(rnd, big.NewInt(2))
+		var x *big.Int = modexp(rnd, t, num)
+		if x.Cmp(big.NewInt(1)) == 0 || x.Cmp(new(big.Int).Sub(num, big.NewInt(1))) == 0 {
+			continue
+		}
+		for j := 1; j < s; j++ {
+			x = modexp(x, big.NewInt(2), num)
+			if x.Cmp(big.NewInt(1)) == 0 {
+				return false
+			}
+			if x.Cmp(new(big.Int).Sub(num, big.NewInt(1))) == 0 {
+				break
+			}
+		}
+		if x.Cmp(new(big.Int).Sub(num, big.NewInt(1))) != 0 {
 			return false
 		}
 	}
@@ -62,14 +95,14 @@ func CreateBob() *T_Bob {
 		Bob.PrivateKey = make([]*big.Int, Bob.KeyLen)
 		for i := 0; i < Bob.KeyLen; i++ {
 			Bob.PrivateKey[i] = big.NewInt(int64(0))
-			Bob.PrivateKey[i].SetString(os.Args[i + 1], 10)
+			Bob.PrivateKey[i].SetString(os.Args[i+1], 10)
 		}
 	}
 	Bob.Q = big.NewInt(int64(0))
 	for i := 0; i < Bob.KeyLen; i++ {
 		Bob.Q.Add(Bob.Q, Bob.PrivateKey[i])
 	}
-	for !IsPrime(Bob.Q) {
+	for !MillerRabinTest(Bob.Q, 100000) {
 		Bob.Q.Add(Bob.Q, big.NewInt(int64(1)))
 	}
 	Bob.R = big.NewInt(int64(0))
