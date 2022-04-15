@@ -2,6 +2,7 @@ package bob
 
 import (
 	"flag"
+	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -117,7 +118,7 @@ func CreateBob() *T_Bob {
 	return Bob
 }
 
-func CryptToBinary(Bob *T_Bob) []string {
+func DecryptToBinary(Bob *T_Bob) []string {
 	modInv := new(big.Int)
 	modInv.ModInverse(Bob.R, Bob.Q)
 	var newLen = len(Bob.CryptedMsg)
@@ -147,7 +148,7 @@ func CryptToBinary(Bob *T_Bob) []string {
 }
 
 func OldBinary(Bob *T_Bob) []string {
-	var newBinary []string = CryptToBinary(Bob)
+	var newBinary []string = DecryptToBinary(Bob)
 	var tmp string
 	var b strings.Builder
 	newLen := len(newBinary)
@@ -157,6 +158,10 @@ func OldBinary(Bob *T_Bob) []string {
 	}
 	tmp = b.String()
 	zeros := len(tmp) % (Bob.MsgLen * 7)
+	n := len(tmp) / (Bob.MsgLen * 7)
+	if n > 1 {
+		zeros += (n - 1) * (Bob.MsgLen * 7)
+	}
 	tmp = tmp[zeros :]
 	var oldBinary []string = make([]string, Bob.MsgLen)
 	for i := 0 ; i < Bob.MsgLen; i++ {
@@ -165,7 +170,7 @@ func OldBinary(Bob *T_Bob) []string {
 	return oldBinary
 }
 
-func (Bob *T_Bob) Encrypting() string {
+func (Bob *T_Bob) Decrypting() string {
 	var binary []string = OldBinary(Bob)
 	var tmp []byte = make([]byte, Bob.MsgLen)
 	for i := 0; i < Bob.MsgLen; i++ {

@@ -8,21 +8,21 @@ import (
 	"strings"
 )
 
-type T_Alice struct {
-	PublicKey	[]*big.Int
-	CryptedMsg	[]*big.Int
-	Message		string
-	KeyLen		int
-	MsgLen		int
+type T_Alissa struct {
+	PublicKey		[]*big.Int
+	EncryptedMsg	[]*big.Int
+	Message			string
+	KeyLen     		int
+	MsgLen			int
 }
 
-func CreateAlice(keyLen int) *T_Alice {
-	var Alice *T_Alice = new(T_Alice)
-	Alice.KeyLen = keyLen
-	return (Alice)
+func CreateAlissa(keyLen int) *T_Alissa {
+	var Alissa *T_Alissa = new(T_Alissa)
+	Alissa.KeyLen = keyLen
+	return (Alissa)
 }
 
-func readMessage(Alice *T_Alice) {
+func readMessage(Alissa *T_Alissa) {
 	var b strings.Builder
 	var scanner bufio.Scanner = *bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanLines)
@@ -36,19 +36,19 @@ func readMessage(Alice *T_Alice) {
 		b.WriteString("\n")
 		fmt.Print(">>> ")
 	}
-	Alice.Message = b.String()
+	Alissa.Message = b.String()
 }
 
-func messageToBinary(Alice *T_Alice) []string {
-	readMessage(Alice)
-	Alice.MsgLen = len(Alice.Message)
-	var tmp [][]byte = make([][]byte, Alice.MsgLen)
-	var binary []string = make([]string, Alice.MsgLen)
-	for i := 0; i < Alice.MsgLen; i++ {
-		ch := byte(Alice.Message[i])
+func messageToBinary(Alissa *T_Alissa) []string {
+	readMessage(Alissa)
+	Alissa.MsgLen = len(Alissa.Message)
+	var tmp [][]byte = make([][]byte, Alissa.MsgLen)
+	var binary []string = make([]string, Alissa.MsgLen)
+	for i := 0; i < Alissa.MsgLen; i++ {
+		ch := byte(Alissa.Message[i])
 		tmp[i] = make([]byte, 7)
 		for j := 6; j >= 0; j-- {
-			if ch % 2 == 1 {
+			if ch%2 == 1 {
 				tmp[i][j] = '1'
 			} else {
 				tmp[i][j] = '0'
@@ -57,38 +57,48 @@ func messageToBinary(Alice *T_Alice) []string {
 		}
 		binary[i] = string(tmp[i])
 	}
+	fmt.Println("\nBinary reprasantation of message:")
+	for i := 0; i < Alissa.MsgLen; i++ {
+		fmt.Printf("%s\n", binary[i])
+	}
+	fmt.Println()
 	return binary
 }
 
-func newBinary(Alice *T_Alice) []string {
-	var binary []string = messageToBinary(Alice)
-	var newLen = Alice.MsgLen * 7 + (Alice.KeyLen - (Alice.MsgLen * 7) % Alice.KeyLen)
+func newBinary(Alissa *T_Alissa) []string {
+	var binary []string = messageToBinary(Alissa)
+	var newLen = Alissa.MsgLen*7 + (Alissa.KeyLen - (Alissa.MsgLen*7)%Alissa.KeyLen)
 	var b strings.Builder
 	b.Grow(newLen)
-	for i := 0; i < newLen - Alice.MsgLen * 7; i++ {
+	for i := 0; i < newLen-Alissa.MsgLen*7; i++ {
 		b.WriteString("0")
 	}
-	for i := 0; i < Alice.MsgLen; i++ {
+	for i := 0; i < Alissa.MsgLen; i++ {
 		b.WriteString(binary[i])
 	}
 	new := b.String()
-	var newBinary []string = make([]string, newLen / Alice.KeyLen)
-	for i := 0; i < newLen / Alice.KeyLen; i++ {
-		newBinary[i] = new[i * Alice.KeyLen : (i + 1) * Alice.KeyLen]
+	var newBinary []string = make([]string, newLen/Alissa.KeyLen)
+	for i := 0; i < newLen/Alissa.KeyLen; i++ {
+		newBinary[i] = new[i*Alissa.KeyLen : (i+1)*Alissa.KeyLen]
 	}
+	fmt.Println("Binary reprasantation after changes:")
+	for i := 0; i < newLen/Alissa.KeyLen; i++ {
+		fmt.Printf("%s\n", newBinary[i])
+	}
+	fmt.Println()
 	return newBinary
 }
 
-func (Alice *T_Alice) Crypting() {
-	var newBinary []string = newBinary(Alice)
+func (Alissa *T_Alissa) Encrypting() {
+	var newBinary []string = newBinary(Alissa)
 	newLen := len(newBinary)
-	Alice.CryptedMsg = make([]*big.Int, newLen)
+	Alissa.EncryptedMsg = make([]*big.Int, newLen)
 	for i := 0; i < newLen; i++ {
-		Alice.CryptedMsg[i] = big.NewInt(int64(0))
-		for j := 0; j < Alice.KeyLen; j++ {
+		Alissa.EncryptedMsg[i] = big.NewInt(int64(0))
+		for j := 0; j < Alissa.KeyLen; j++ {
 			mul := big.NewInt(int64(0))
-			Alice.CryptedMsg[i].Add(Alice.CryptedMsg[i], 
-				mul.Mul(big.NewInt(int64((int(newBinary[i][j]) - '0'))), Alice.PublicKey[j]))
+			Alissa.EncryptedMsg[i].Add(Alissa.EncryptedMsg[i],
+				mul.Mul(big.NewInt(int64((int(newBinary[i][j])-'0'))), Alissa.PublicKey[j]))
 		}
 	}
 }
