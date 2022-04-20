@@ -18,7 +18,6 @@ func main() {
 	}
 	defer conn.Close()
 
-	// Отправка ключа
 	var Bob *bob.T_Bob = bob.CreateBob()
 	file, err := os.Create("privateKey.txt")
 	if err != nil {

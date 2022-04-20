@@ -2,7 +2,6 @@ package bob
 
 import (
 	"flag"
-	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -12,13 +11,13 @@ import (
 )
 
 type T_Bob struct {
-	PrivateKey	[]*big.Int
-	PublicKey	[]*big.Int
-	CryptedMsg	[]*big.Int
-	KeyLen		int
-	MsgLen		int
-	Q			*big.Int
-	R			*big.Int
+	PrivateKey []*big.Int
+	PublicKey  []*big.Int
+	CryptedMsg []*big.Int
+	KeyLen     int
+	MsgLen     int
+	Q          *big.Int
+	R          *big.Int
 }
 
 func (Bob *T_Bob) KeyGen(keyLen int) {
@@ -83,6 +82,17 @@ func MillerRabinTest(num *big.Int, k int) bool {
 	return true
 }
 
+func EvclideGCD(a, b *big.Int) *big.Int {
+	for a.Cmp(big.NewInt(0)) != 0 && b.Cmp(big.NewInt(0)) != 0 {
+		if a.Cmp(b) == 1 {
+			a.Mod(a, b)
+		} else {
+			b.Mod(b, a)
+		}
+	}
+	return (new(big.Int).Add(a, b))
+}
+
 func CreateBob() *T_Bob {
 	var Bob *T_Bob = new(T_Bob)
 	if len(os.Args) == 1 {
@@ -99,20 +109,23 @@ func CreateBob() *T_Bob {
 			Bob.PrivateKey[i].SetString(os.Args[i+1], 10)
 		}
 	}
-	Bob.Q = big.NewInt(int64(0))
+	Bob.Q = big.NewInt(0)
 	for i := 0; i < Bob.KeyLen; i++ {
 		Bob.Q.Add(Bob.Q, Bob.PrivateKey[i])
 	}
-	for !MillerRabinTest(Bob.Q, 100000) {
+	for !MillerRabinTest(Bob.Q, 10000) {
 		Bob.Q.Add(Bob.Q, big.NewInt(int64(1)))
 	}
-	Bob.R = big.NewInt(int64(0))
+	Bob.R = new(big.Int)
 	Bob.R.Rand(rand.New(rand.NewSource(time.Now().UnixNano())), Bob.Q)
+	for EvclideGCD(new(big.Int).Set(Bob.Q), new(big.Int).Set(Bob.R)).Cmp(big.NewInt(1)) != 0 {
+		Bob.R.Rand(rand.New(rand.NewSource(time.Now().UnixNano())), Bob.Q)
+	}
 	Bob.PublicKey = make([]*big.Int, Bob.KeyLen)
 	for i := 0; i < Bob.KeyLen; i++ {
 		Bob.PublicKey[i] = big.NewInt(int64(0))
-		mul := big.NewInt(int64(0))
-		mod := big.NewInt(int64(0))
+		mul := new(big.Int)
+		mod := new(big.Int)
 		Bob.PublicKey[i].Set(mod.Mod(mul.Mul(Bob.PrivateKey[i], Bob.R), Bob.Q))
 	}
 	return Bob
@@ -162,10 +175,10 @@ func OldBinary(Bob *T_Bob) []string {
 	if n > 1 {
 		zeros += (n - 1) * (Bob.MsgLen * 7)
 	}
-	tmp = tmp[zeros :]
+	tmp = tmp[zeros:]
 	var oldBinary []string = make([]string, Bob.MsgLen)
-	for i := 0 ; i < Bob.MsgLen; i++ {
-		oldBinary[i] = tmp[i * 7 : (i + 1) * 7]
+	for i := 0; i < Bob.MsgLen; i++ {
+		oldBinary[i] = tmp[i*7 : (i+1)*7]
 	}
 	return oldBinary
 }
@@ -177,7 +190,7 @@ func (Bob *T_Bob) Decrypting() string {
 		a := 0
 		for j := 6; j >= 0; j-- {
 			if binary[i][j] == '1' {
-				a += int(math.Pow(2,float64(6 - j)))
+				a += int(math.Pow(2, float64(6-j)))
 			}
 		}
 		tmp[i] = byte(a)
