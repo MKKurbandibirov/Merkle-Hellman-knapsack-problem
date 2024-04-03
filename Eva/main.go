@@ -1,38 +1,31 @@
 package main
 
 import (
-	"cursach/eva"
+	"Eva/cracking"
 	"fmt"
-	"net"
-	"os"
-	"strings"
-	"strconv"
+	"log"
 	"math/big"
+	"strconv"
+	"strings"
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "127.0.0.1:4045")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "[ERROR] Couldn't connect to server!")
-		os.Exit(1)
-	}
-	defer conn.Close()
+	Eva, err := cracking.CreateEva("nats://0.0.0.0:4222", "public_key", "messages")
 
-	var Eva *eva.T_Eva = eva.CreateEva()
-	conn.Write([]byte("Eva"))
-
-	buf := make([]byte, 8192)
-	n, err := conn.Read(buf)
+	key, err := Eva.KeySub.GetMessage()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "[ERROR] Reading error!")
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	var KeyAndMsg []string = strings.Split(string(buf[:n]), "\n")
+
+	msg, err := Eva.MsgSub.GetMessage()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// fmt.Println(KeyAndMsg[1])
 
 	fmt.Println("[OK] Public key recieved!")
-	var tmp1 []string = strings.Split(KeyAndMsg[0], " ")
+	var tmp1 []string = strings.Split(key, " ")
 	var Keylen int = len(tmp1) - 1
 	var PublicKey []*big.Int = make([]*big.Int, Keylen)
 	for i := 0; i < Keylen; i++ {
@@ -40,11 +33,11 @@ func main() {
 		PublicKey[i].SetString(tmp1[i], 10)
 		fmt.Println(PublicKey[i])
 	}
-	fmt.Println()
+	fmt.Println(key, msg)
 	Eva.KeyLen = Keylen
 	Eva.PublicKey = PublicKey
 
-	var tmp []string = strings.Split(KeyAndMsg[1], " ")
+	var tmp []string = strings.Split(msg, " ")
 	var MsgLen int = len(tmp) - 1
 	Len, _ := strconv.ParseInt(tmp[MsgLen], 10, 64)
 	Eva.MsgLen = int(Len)
