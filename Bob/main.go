@@ -1,17 +1,17 @@
 package main
 
 import (
-	"Bob/decrypt"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
+	"utils/decryptor"
 )
 
 func main() {
-	Bob, err := decrypt.CreateBob("nats://0.0.0.0:4222", "messages")
+	Bob, err := decryptor.NewDecryptor("nats://0.0.0.0:4222", "messages")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,13 +56,12 @@ func main() {
 		}
 		fmt.Println()
 
-		var CryptedMsg []*big.Int = make([]*big.Int, MsgLen)
+		var encryptedMsg []*big.Int = make([]*big.Int, MsgLen)
 		for i := 0; i < MsgLen; i++ {
-			CryptedMsg[i] = new(big.Int)
-			CryptedMsg[i].SetString(tmp[i], 10)
+			encryptedMsg[i] = new(big.Int)
+			encryptedMsg[i].SetString(tmp[i], 10)
 		}
-		Bob.CryptedMsg = CryptedMsg
-		decryptedMsg := Bob.Decrypting()
+		decryptedMsg := Bob.Decrypting(encryptedMsg)
 
 		fmt.Printf("[INFO] Message after decrypting: \n%s\n", decryptedMsg)
 	}

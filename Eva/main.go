@@ -22,9 +22,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// fmt.Println(KeyAndMsg[1])
-
 	fmt.Println("[OK] Public key recieved!")
+
 	var tmp1 []string = strings.Split(key, " ")
 	var Keylen int = len(tmp1) - 1
 	var PublicKey []*big.Int = make([]*big.Int, Keylen)
@@ -44,6 +43,7 @@ func main() {
 	tmp = tmp[:MsgLen]
 
 	fmt.Println("[OK] Recieve encrypted message:")
+	
 	for i := 0; i < len(tmp); i++ {
 		fmt.Println(tmp[i])
 	}
