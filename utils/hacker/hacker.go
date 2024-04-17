@@ -1,4 +1,4 @@
-package cracking
+package hacker
 
 import (
 	"math"
@@ -7,32 +7,30 @@ import (
 	"utils/subscriber"
 )
 
-
-type Eva struct {
-	PublicKey		[]*big.Int
-	EncryptedMsg 	[]*big.Int
-	KeyLen			int
-	MsgLen			int
+type Hacker struct {
+	PublicKey    []*big.Int
+	KeyLen       int
+	MsgLen       int
 
 	KeySub *subscriber.Subscriber
 	MsgSub *subscriber.Subscriber
 }
 
-func CreateEva(url string, keyTopic, msgTopic string) (*Eva, error) {
-	eva := &Eva{}
+func NewHacker(url string, keyTopic, msgTopic string) (*Hacker, error) {
+	h := &Hacker{}
 
 	var err error
-	eva.KeySub, err = subscriber.NewSubscriber(url, keyTopic)
+	h.KeySub, err = subscriber.NewSubscriber(url, keyTopic)
 	if err != nil {
 		return nil, err
 	}
 
-	eva.MsgSub, err = subscriber.NewSubscriber(url, msgTopic)
+	h.MsgSub, err = subscriber.NewSubscriber(url, msgTopic)
 	if err != nil {
 		return nil, err
 	}
 
-	return eva, nil
+	return h, nil
 }
 
 func bigIntToBinary(num *big.Int, keyLen int) []byte {
@@ -60,13 +58,13 @@ func getWeight(publicKey []*big.Int, tmp []byte) *big.Int {
 	return weight
 }
 
-func hackHelper(encryptedWord *big.Int, Eva *Eva) []byte {
+func (h *Hacker) hackHelper(encryptedWord *big.Int) []byte {
 	var limit *big.Int = new(big.Int).Sub(new(big.Int).Exp(big.NewInt(2),
-		big.NewInt(int64(Eva.KeyLen)), nil), big.NewInt(1))
+		big.NewInt(int64(h.KeyLen)), nil), big.NewInt(1))
 	var possibleSol *big.Int = big.NewInt(0)
 	for ; possibleSol.Cmp(limit) <= 0; possibleSol.Add(possibleSol, big.NewInt(1)) {
-		tmp := bigIntToBinary(new(big.Int).Set(possibleSol), Eva.KeyLen)
-		weight := getWeight(Eva.PublicKey, tmp)
+		tmp := bigIntToBinary(new(big.Int).Set(possibleSol), h.KeyLen)
+		weight := getWeight(h.PublicKey, tmp)
 		if weight.Cmp(encryptedWord) == 0 {
 			return tmp
 		}
@@ -74,21 +72,21 @@ func hackHelper(encryptedWord *big.Int, Eva *Eva) []byte {
 	return nil
 }
 
-func (Eva *Eva) Hacking() string {
+func (h *Hacker) Hacking(encryptedMsg []*big.Int) string {
 	var b strings.Builder
-	for i := 0; i < len(Eva.EncryptedMsg); i++ {
-		b.Write(hackHelper(Eva.EncryptedMsg[i], Eva))
+	for i := 0; i < len(encryptedMsg); i++ {
+		b.Write(h.hackHelper(encryptedMsg[i]))
 	}
 	binary := b.String()
-	binary = binary[len(binary)-Eva.MsgLen*7:]
+	binary = binary[len(binary)-h.MsgLen*7:]
 
-	var oldBinary []string = make([]string, Eva.MsgLen)
-	for i := 0; i < Eva.MsgLen; i++ {
+	var oldBinary []string = make([]string, h.MsgLen)
+	for i := 0; i < h.MsgLen; i++ {
 		oldBinary[i] = binary[i*7 : (i+1)*7]
 	}
 
-	var tmp []byte = make([]byte, Eva.MsgLen)
-	for i := 0; i < Eva.MsgLen; i++ {
+	var tmp []byte = make([]byte, h.MsgLen)
+	for i := 0; i < h.MsgLen; i++ {
 		a := 0
 		for j := 6; j >= 0; j-- {
 			if oldBinary[i][j] == '1' {

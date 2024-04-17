@@ -38,7 +38,6 @@ func main() {
 
 	for {
 		buf, err := Bob.MsgSub.GetMessage()
-		fmt.Println(buf)
 		if len(buf) == 0 || err != nil {
 			fmt.Fprintln(os.Stderr, "[ERROR] While getting message: %w", err)
 			os.Exit(1)

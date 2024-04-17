@@ -1,0 +1,5 @@
+version: '3'
+services:
+  nats:
+    image: nats-streaming:0.16.2
+    restart: on-failure
