@@ -1,5 +1,8 @@
 version: '3'
 services:
   nats:
-    image: nats-streaming:0.16.2
+    image: nats-streaming
+    ports:
+      - "4222:4222"
+      - "8222:8222"
     restart: on-failure

@@ -28,12 +28,12 @@ func main() {
 	for i := 0; i < Keylen; i++ {
 		PublicKey[i] = new(big.Int)
 		PublicKey[i].SetString(tmp1[i], 10)
-		fmt.Println(PublicKey[i])
 	}
 
 	Eva.KeyLen = Keylen
 	Eva.PublicKey = PublicKey
 
+	fmt.Println("[INFO] Hacking messages:")
 	for {
 		msg, err := Eva.MsgSub.GetMessage()
 		if err != nil {
@@ -59,6 +59,6 @@ func main() {
 			encryptedMsg[i].SetString(tmp[i], 10)
 		}
 
-		fmt.Println(Eva.Hacking(encryptedMsg))
+		fmt.Printf("[INFO] Message after hacking: \n>>> %s\n", Eva.Hacking(encryptedMsg))
 	}
 }

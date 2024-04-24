@@ -46,7 +46,7 @@ func readMessage() string {
 	var scanner bufio.Scanner = *bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanLines)
 
-	fmt.Print("Enter the message:\n>>> ")
+	fmt.Print("Enter the message:\n<<< ")
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -56,7 +56,7 @@ func readMessage() string {
 		b.WriteString(line)
 		b.WriteString("\n")
 
-		fmt.Print(">>> ")
+		fmt.Print("<<< ")
 	}
 
 	return b.String()
@@ -86,13 +86,6 @@ func (enc *Encryptor) messageToBinary() []string {
 		binary[i] = string(tmp[i])
 	}
 
-	fmt.Println("\n\nBinary reprasantation of message:")
-
-	for i := 0; i < msgLen; i++ {
-		fmt.Printf("%s\n", binary[i])
-	}
-	fmt.Println()
-
 	return binary
 }
 
@@ -118,7 +111,7 @@ func (enc *Encryptor) newBinary() []string {
 		newBinary[i] = new[i*enc.KeyLen : (i+1)*enc.KeyLen]
 	}
 
-	fmt.Println("Binary reprasantation after changes:")
+	fmt.Println("\n\nBinary reprasantation of knapsack:")
 
 	for i := 0; i < newLen/enc.KeyLen; i++ {
 		fmt.Printf("%s\n", newBinary[i])

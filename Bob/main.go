@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	Bob, err := decryptor.NewDecryptor("nats://0.0.0.0:4222", "messages")
+	Bob, err := decryptor.NewDecryptor("0.0.0.0:4222", "messages")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,6 +35,8 @@ func main() {
 	if err := Bob.Pub.Publish("public_key", b.String()); err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("[INFO] Bob is waiting a messages!")
 
 	for {
 		buf, err := Bob.MsgSub.GetMessage()
@@ -62,6 +64,6 @@ func main() {
 		}
 		decryptedMsg := Bob.Decrypting(encryptedMsg)
 
-		fmt.Printf("[INFO] Message after decrypting: \n%s\n", decryptedMsg)
+		fmt.Printf("[INFO] Message after decrypting: \n>>> %s\n", decryptedMsg)
 	}
 }
